@@ -41,8 +41,9 @@ export default function List() {
       const data = await response.json();
       console.log('Saved task data:', data);
 
+      // Create a deep copy of the tasks array and update it
       const updatedTasks = JSON.parse(JSON.stringify(tasks));
-      updatedTasks.push(data);
+      updatedTasks.push(data); // Assuming the API returns the newly created task
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error saving task:', error);
@@ -71,7 +72,7 @@ export default function List() {
       setTasks((prevTasks) => prevTasks.map((task) => (task.id === id ? data : task)));
     } catch (error) {
       console.error('Error patching task:', error);
-      throw error;
+      throw error; // Ensure the error is propagated to the caller for further handling
     }
   };
 
@@ -135,6 +136,15 @@ export default function List() {
     setTasks((prevTasks) => [...prevTasks, newTask]);
   };
 
+  const handleAddTask = () => {
+    const lastTask = tasks[tasks.length - 1];
+    if (lastTask && lastTask.text.trim() === '') {
+      console.error('Cannot add new task: the last task is empty.');
+    } else {
+      addTask();
+    }
+  };
+
   const dragStart = (e, position) => {
     dragItem.current = position;
   };
@@ -160,11 +170,11 @@ export default function List() {
   return (
     <div className="w-1/2 mx-auto">
       <div className="flex justify-center mb-[-3.5rem] mt-[3.5rem]">
-        <img src={PlantIcon} alt="Plant icon" className="mr-80 w-16" />
+        <img src={PlantIcon} alt="plant1" className="mr-80 w-16" />
       </div>
       <h1 className="text-center text-4xl mt-[1rem]">To Do List</h1>
       <div className="flex justify-center mt-[-4rem]">
-        <img src={PlantIcon} alt="Plant icon" className="ml-80 w-16" />
+        <img src={PlantIcon} alt="alt2" className="ml-80 w-16" />
       </div>
       {tasks.map((task, index) => (
         <ListItem
@@ -174,7 +184,7 @@ export default function List() {
           tasks={tasks}
           handleTextChange={handleTextChange}
           handleCheckedState={handleCheckedState}
-          addTask={addTask}
+          addTask={handleAddTask}
           removeTask={removeTask}
           saveTask={saveTask}
           patchTask={patchTask}
@@ -186,6 +196,13 @@ export default function List() {
           isDraggedOver={dragOverItem.current === index}
         />
       ))}
+      {tasks.length === 0 && (
+        <div className="flex justify-center mt-4">
+          <button onClick={handleAddTask} className="bg-green-500 text-white px-4 py-2 rounded">
+            Add Task
+          </button>
+        </div>
+      )}
     </div>
   );
 }
