@@ -2,7 +2,7 @@
     "name": "todolist",
     "version": "0.1.0",
     "scripts": {
-      "build": "cd client && npm run build"
+     "build": "cd client && npm install && npm run build"
     },
     "engines": {
       "node": "14.x"
