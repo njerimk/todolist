@@ -1,7 +1,7 @@
 [build]
-  base = "../"  # Base directory is one level up from the client folder
+  base = "/"
   command = "npm run build"
-  publish = "todolist/client/build"
+  publish = "client/build"
 
 [[redirects]]
   from = "/*"
