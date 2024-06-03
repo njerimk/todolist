@@ -1,0 +1,10 @@
+[build]
+  base = "/"
+  command = "npm run build"
+  publish = "client/build"  # Change this to the actual build output directory
+
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
