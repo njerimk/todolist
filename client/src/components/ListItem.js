@@ -8,10 +8,11 @@ export default function ListItem({
   deleteTask,
   handleTextChange,
   handleCheckedState,
+  handleTaskSubmit,
   addTask,
   removeTask,
-  saveTask,
-  patchTask,
+  handlePatch,
+  handleSave,
   onDragStart,
   onDragEnter,
   onDragOver,
@@ -19,32 +20,14 @@ export default function ListItem({
   draggable,
   isDraggedOver
 }) {
+
   const [isEditing, setIsEditing] = useState(!task || !task.text);
 
-  const handleSave = () => {
-    if (task && task.text && task.text.trim()) {
-      saveTask(task)
-        .then(() => setIsEditing(false))
-        .catch(error => console.error('Error saving task:', error));
-    }
-  };
 
-  const handlePatch = () => {
-    if (task && task.text && task.text.trim()) {
-      const updatedData = {
-        text: task.text,
-        date: new Date().toDateString(),
-        selected: task.selected,
-        checked: task.checked,
-      };
-      patchTask(task.id, updatedData)
-        .then(() => setIsEditing(false))
-        .catch(error => console.error('Error patching task:', error));
-    }
-  };
+  
 
   const handleDelete = () => {
-    if (!task || !task.text) {
+    if (task.is_new || task.id === undefined) {
       removeTask(task.id);
     } else {
       deleteTask(task.id);
@@ -54,29 +37,52 @@ export default function ListItem({
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (task.is_new) {
-        handleSave();
-      } else {
-        handlePatch();
+      if(isEditing) {
+        if (task.is_new) {
+          handleSave(task);
+          if(task.id === undefined){
+            removeTask()
+          }
+        } else {
+          handlePatch(task);
+        }
+        setIsEditing(false);
       }
     }
   };
 
-  const handleAddTask = () => {
-    if (addTask) {
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleTaskSubmit(task);
+  };
+
+  const handleAddTask = (e) => {
+    if(addTask) {
       addTask({ target: { id: task ? task.id : '' } });
     }
   };
 
+  const handleBlur = () => {
+    if (isEditing) {
+      if (task.is_new) {
+        handleSave(task);
+      } else {
+        handlePatch(task);
+      }
+      
+    }setIsEditing(false);
+  };
+
   return (
     <div
-      className={`m-4 p-4 max-w-sm mx-auto bg-white rounded-xl shadow-lg flex items-center space-x-4 ${isDraggedOver ? 'style.dragged-over' : ''}`}
+      className={`m-4 w-auto p-4 max-w-sm mx-auto bg-white rounded-xl shadow-lg flex items-center space-x-4 ${isDraggedOver ? 'style.dragged-over' : ''}`}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnter={onDragEnter}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
-    >
+      >
       <div className="flex-shrink-0">
         <button
           onClick={() => handleCheckedState(task.id)}
@@ -91,14 +97,14 @@ export default function ListItem({
           )}
         </button>
       </div>
-      <div className="flex-grow">
+      <div className="flex-grow overflow-y-auto">
         {isEditing ? (
           <input
             type="text"
             className="task-input border border-gray-400 p-2 rounded-md w-full"
             value={task ? task.text : ''}
             onChange={(e) => handleTextChange(task.id, e)}
-            onBlur={handleKeyDown}
+            onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             autoFocus
           />
@@ -108,13 +114,13 @@ export default function ListItem({
             onClick={() => setIsEditing(true)}
             
           >
-            {task ? task.text : ''}
+            {task.text ? task.text : 'New Task'}
           </p>
         )}
         <p className="text-sm text-gray-500">{task ? task.date : ''}</p>
       </div>
       <div className="ml-4 flex-shrink-0">
-        <button onClick={handleAddTask}>
+        <button onClick={()=>handleAddTask(task ? task.id : '')}>
           <img src={AddButton} alt="addButton" className="w-6 m-1 h-6 cursor-pointer" />
         </button>
         <button onClick={() => handleDelete(task ? task.id : '')}>

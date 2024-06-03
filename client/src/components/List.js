@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ListItem from './ListItem';
 import PlantIcon from '../assets/plant.png';
+import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid';
 
 export default function List() {
@@ -23,33 +24,34 @@ export default function List() {
     }
   };
 
-  const saveTask = async (task) => {
+  // Function to add a new task to tasks state
+  const saveTask = async () => {
     try {
-      const response = await fetch('http://localhost:5000/tasks', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(task),
+      const currentDate = new Date().toISOString();
+      const response = await axios.post('http://localhost:5000/tasks', {
+        id: uuidv4(),
+        text: 'New Task',
+        date: currentDate,
+        selected: false,
+        checked: false,
       });
+  
+      if (response.status === 201) {
+        console.log('Task saved successfully:', response.data);
+        const updatedTasks = [...tasks, response.data];
+        updatedTasks.pop();
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        setTasks(updatedTasks);
+      } else {
+        console.error('Failed to save task. Status:', response.status);
       }
-
-      const data = await response.json();
-      console.log('Saved task data:', data);
-
-      // Create a deep copy of the tasks array and update it
-      const updatedTasks = JSON.parse(JSON.stringify(tasks));
-      updatedTasks.push(data); // Assuming the API returns the newly created task
-      setTasks(updatedTasks);
     } catch (error) {
       console.error('Error saving task:', error);
-      throw error;
     }
   };
+  
+  
+
 
   const patchTask = async (id, updatedData) => {
     try {
@@ -72,16 +74,16 @@ export default function List() {
       setTasks((prevTasks) => prevTasks.map((task) => (task.id === id ? data : task)));
     } catch (error) {
       console.error('Error patching task:', error);
-      throw error; // Ensure the error is propagated to the caller for further handling
+      throw error;
     }
   };
 
   const removeTask = (taskId) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
-    setTasks(updatedTasks);
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
   };
 
   const deleteTask = async (id) => {
+ 
     try {
       const response = await fetch(`http://localhost:5000/tasks/${id}`, {
         method: 'DELETE',
@@ -124,6 +126,7 @@ export default function List() {
   };
 
   const addTask = () => {
+
     const newTask = {
       id: uuidv4(),
       text: '',
@@ -143,6 +146,42 @@ export default function List() {
     } else {
       addTask();
     }
+  };
+
+  const handleSave = (task) => {
+    if (task.text.trim()) {
+      saveTask(task);
+    }
+  };
+
+  const handlePatch = (task) => {
+    if (!task.is_new) {
+      const updatedData = {
+        text: task.text,
+        date: new Date().toDateString(),
+        checked: task.checked,
+        selected: task.selected,
+
+      };
+      patchTask(task.id, updatedData);
+    }
+  };
+
+  const handleTaskSubmit = async (task) => {
+    if (task.text.trim() === '') {
+      console.error('Cannot save empty task');
+      return;
+    }
+    if (task.is_new) {
+      await saveTask(task);
+    } else {
+      await patchTask(task.id, { text: task.text });
+    }
+    setTasks((prevTasks) =>
+      prevTasks.map((t) =>
+        t.id === task.id ? { ...t, isEditing: false, is_new: false } : t
+      )
+    );
   };
 
   const dragStart = (e, position) => {
@@ -182,12 +221,15 @@ export default function List() {
           deleteTask={deleteTask}
           task={task}
           tasks={tasks}
+          handlePatch={handlePatch}
+          handleSave={handleSave}
           handleTextChange={handleTextChange}
           handleCheckedState={handleCheckedState}
           addTask={handleAddTask}
           removeTask={removeTask}
           saveTask={saveTask}
           patchTask={patchTask}
+          handleTaskSubmit={handleTaskSubmit}
           draggable
           onDragStart={(e) => dragStart(e, index)}
           onDragEnter={(e) => dragEnter(e, index)}
@@ -198,7 +240,7 @@ export default function List() {
       ))}
       {tasks.length === 0 && (
         <div className="flex justify-center mt-4">
-          <button onClick={handleAddTask} className="bg-green-500 text-white px-4 py-2 rounded">
+          <button onClick={handleAddTask} className="bg-blue-500 text-white px-4 py-2 rounded">
             Add Task
           </button>
         </div>
