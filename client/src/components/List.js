@@ -240,7 +240,7 @@ export default function List() {
       ))}
       {tasks.length === 0 && (
         <div className="flex justify-center mt-4">
-          <button onClick={handleAddTask} className="bg-blue-500 text-white px-4 py-2 rounded">
+          <button onClick={handleAddTask} className="bg-green-500 text-white px-4 py-2 rounded">
             Add Task
           </button>
         </div>
