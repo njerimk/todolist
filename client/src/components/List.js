@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ListItem from './ListItem';
 import styles from './List.css';
 import PlantIcon from '../assets/plant.png';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function List() {
-  const [tasks, setTasks] = useState([{ id: uuidv4(), text: 'Task 1', date: new Date(Date.now()).toDateString(), selected: false, checked: false }]);
+  const [tasks, setTasks] = useState([{ id: uuidv4(), text: 'Task 1', date: new Date().toDateString(), selected: false, checked: false, isEditing: false }]);
 
   useEffect(() => {
     getTasks();
@@ -42,14 +42,17 @@ export default function List() {
       const data = await response.json();
       console.log('Saved task data:', data);
 
-      setTasks((prevTasks) =>
-        prevTasks.map((t) => (t.id === task.id ? { ...data, is_new: false } : t))
-      );
+      // Create a deep copy of the tasks array and update it
+      const updatedTasks = JSON.parse(JSON.stringify(tasks));
+      updatedTasks.push(data); // Assuming the API returns the newly created task
+      setTasks(updatedTasks);
     } catch (error) {
       console.error('Error saving task:', error);
       throw error;
     }
   };
+      
+  
 
   const patchTask = async (id, updatedData) => {
     try {
@@ -61,20 +64,21 @@ export default function List() {
         },
         body: JSON.stringify(updatedData),
       });
-
+  
       if (!response.ok) {
         throw new Error(`Error: ${response.statusText}`);
       }
-
+  
       const data = await response.json();
       console.log('Patched task data:', data);
-
+  
       setTasks((prevTasks) => prevTasks.map((task) => (task.id === id ? data : task)));
     } catch (error) {
       console.error('Error patching task:', error);
-      throw error;
+      throw error; // Ensure the error is propagated to the caller for further handling
     }
   };
+  
 
   const removeTask = (taskId) => {
     const updatedTasks = tasks.filter((task) => task.id !== taskId);
@@ -108,17 +112,14 @@ export default function List() {
         task.id === taskId ? { ...task, text: newText, date: new Date().toDateString() } : task
       )
     );
-  
   };
 
   const handleCheckedState = (taskId) => {
-    // Update the tasks state
     setTasks((prevTasks) => {
       const updatedTasks = prevTasks.map((task) =>
         task.id === taskId ? { ...task, selected: !task.selected, checked: !task.checked } : task
       );
   
-      // Log the updated task
       const updatedTask = updatedTasks.find(task => taskId === task.id);
       console.log(updatedTask);
   
@@ -126,22 +127,17 @@ export default function List() {
     });
   };
   
-  
-  const addTask = (e) => {
-    const taskId = e.target.id;
-    const taskObject = tasks.find(task => task.id === taskId);
-    const index = tasks.indexOf(taskObject) + 1;
+  const addTask = () => {
     const newTask = {
       id: uuidv4(),
       text: '',
       date: new Date().toDateString(),
       selected: false,
       checked: false,
-      is_new: true
+      is_new: true,
+      isEditing: true
     };
-    const tasksCopy = [...tasks];
-    tasksCopy.splice(index, 0, newTask);
-    setTasks(tasksCopy);
+    setTasks((prevTasks) => [...prevTasks, newTask]);
   };
 
   const dragStart = (e, position) => {
@@ -168,13 +164,13 @@ export default function List() {
 
   return (
     <div className="w-1/2 mx-auto">
-    <div className="flex justify-center mb-[-3.5rem] mt-[3.5rem]">
-      <img src={PlantIcon} className="mr-80 w-16" />
-    </div>
-    <h1 className="text-center text-4xl mt-[1rem]">To Do List</h1>
-    <div className="flex justify-center mt-[-4rem]">
-      <img src={PlantIcon} className="ml-80 w-16" />
-    </div>
+      <div className="flex justify-center mb-[-3.5rem] mt-[3.5rem]">
+        <img src={PlantIcon} className="mr-80 w-16" />
+      </div>
+      <h1 className="text-center text-4xl mt-[1rem]">To Do List</h1>
+      <div className="flex justify-center mt-[-4rem]">
+        <img src={PlantIcon} className="ml-80 w-16" />
+      </div>
       {tasks.map((task, index) => (
         <ListItem
           key={task.id}
