@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import CheckMark from '../assets/check-mark.svg';
 import AddButton from '../assets/green-add-button.svg';
 import MinusButton from '../assets/minus-button.png';
-import style from './List.css';
 
 export default function ListItem({
   task,
@@ -105,8 +104,9 @@ export default function ListItem({
           />
         ) : (
           <p
-            className={`text-lg font-medium text-black ${task && task.checked ? 'line-through' : ''}`}
+          className={`block text-lg leading-tight font-medium cursor-pointer ${task.checked ? 'line-through text-gray-400' : 'text-black'}`}
             onClick={() => setIsEditing(true)}
+            
           >
             {task ? task.text : ''}
           </p>
@@ -115,10 +115,10 @@ export default function ListItem({
       </div>
       <div className="ml-4 flex-shrink-0">
         <button onClick={handleAddTask}>
-          <img src={AddButton} className="w-6 m-1 h-6 cursor-pointer" />
+          <img src={AddButton} alt="addButton" className="w-6 m-1 h-6 cursor-pointer" />
         </button>
         <button onClick={() => handleDelete(task ? task.id : '')}>
-          <img src={MinusButton} className="w-6 m-1 h-6 cursor-pointer" />
+          <img src={MinusButton} alt="minusButton" className="w-6 m-1 h-6 cursor-pointer" />
         </button>
       </div>
     </div>
