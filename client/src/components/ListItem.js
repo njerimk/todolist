@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import CheckMark from '../assets/check-mark.svg';
 import AddButton from '../assets/green-add-button.svg';
 import MinusButton from '../assets/minus-button.png';
 import style from './List.css';
-
 
 export default function ListItem({
   task,
@@ -13,56 +12,61 @@ export default function ListItem({
   addTask,
   removeTask,
   saveTask,
+  patchTask,
   onDragStart,
   onDragEnter,
   onDragOver,
   onDragEnd,
   draggable,
-  isDraggedOver,
-  patchTask
+  isDraggedOver
 }) {
-  
+  const [isEditing, setIsEditing] = useState(!task || !task.text);
 
-const [isEditing, setIsEditing] = useState(false);
+  const handleSave = () => {
+    if (task && task.text && task.text.trim()) {
+      saveTask(task)
+        .then(() => setIsEditing(false))
+        .catch(error => console.error('Error saving task:', error));
+    }
+  };
 
-const handleSave = () => {
-  if (task.text.trim()) {
-    saveTask(task)
-      .then(() => setIsEditing(false))
-      .catch(error => console.error('Error saving task:', error));
-  }
-};
+  const handlePatch = () => {
+    if (task && task.text && task.text.trim()) {
+      const updatedData = {
+        text: task.text,
+        date: new Date().toDateString(),
+        selected: task.selected,
+        checked: task.checked,
+      };
+      patchTask(task.id, updatedData)
+        .then(() => setIsEditing(false))
+        .catch(error => console.error('Error patching task:', error));
+    }
+  };
 
-const handlePatch = () => {
-  if (task.text.trim()) {
-    const updatedData = {
-      text: task.text,
-      date: new Date().toDateString(),
-      selected: task.selected,
-      checked: task.checked,
-    };
-    patchTask(task.id, updatedData)
-      .then(() => setIsEditing(false))
-      .catch(error => console.error('Error patching task:', error));
-  }
-};
   const handleDelete = () => {
-    if (task.is_new) {
+    if (!task || !task.text) {
       removeTask(task.id);
     } else {
       deleteTask(task.id);
     }
-  }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       if (task.is_new) {
         handleSave();
       } else {
         handlePatch();
       }
     }
-    setIsEditing(false)
+  };
+
+  const handleAddTask = () => {
+    if (addTask) {
+      addTask({ target: { id: task ? task.id : '' } });
+    }
   };
 
   return (
@@ -77,57 +81,46 @@ const handlePatch = () => {
       <div className="flex-shrink-0">
         <button
           onClick={() => handleCheckedState(task.id)}
-          className="relative mt-5 h-7 w-7 p-1 border-4 grid-rows-1 inline-grid z-10"
+          className={`shrink-0 w-8 h-8 rounded-full border-2 ${task.selected ? 'bg-green-300' : 'bg-white'} flex items-center justify-center cursor-pointer`}
         >
           {task.selected && (
             <img
               src={CheckMark}
-              alt="CheckMark"
-              className="absolute h-5 w-5 top-0 left-0 mt-0 ml-1"
+              className="absolute h-4 w-4"
+              alt="Check Mark"
             />
           )}
         </button>
       </div>
-      <div className="text-xl font-medium text-black">
+      <div className="flex-grow">
         {isEditing ? (
           <input
-            className="mt-10 text-slate-500 p-2"
-            value={task.text}
-            onChange={e => handleTextChange(task.id, e)}
-            onKeyDown={handleKeyDown}
+            type="text"
+            className="task-input border border-gray-400 p-2 rounded-md w-full"
+            value={task ? task.text : ''}
+            onChange={(e) => handleTextChange(task.id, e)}
             onBlur={handleKeyDown}
+            onKeyDown={handleKeyDown}
             autoFocus
           />
         ) : (
-          <div className="w-60">
-              <p
-                className="mt-10 w-40 text-slate-500 p-2 cursor-pointer"
-                onClick={() => setIsEditing(true)}
-              >
-                {task.text}
-              </p>
-          </div>
+          <p
+            className={`text-lg font-medium text-black ${task && task.checked ? 'line-through' : ''}`}
+            onClick={() => setIsEditing(true)}
+          >
+            {task ? task.text : ''}
+          </p>
         )}
-        <p style={{marginLeft:"10px",fontSize:"10px", color:"#c0c6ce"}}>{task.date}</p>
+        <p className="text-sm text-gray-500">{task ? task.date : ''}</p>
       </div>
-      {isEditing ? (
-
-      <div className={{width:"20%"}}>
-        <button className="button-container" style={{width:"65%",display:"inline-block", margin:"20%"}} onClick={addTask}>
-          <img src={AddButton} alt="Add" id={task.id} />
+      <div className="ml-4 flex-shrink-0">
+        <button onClick={handleAddTask}>
+          <img src={AddButton} className="w-6 m-1 h-6 cursor-pointer" />
         </button>
-        <button style={{width:"65%",display:"inline-block", margin:"20%"}} onClick={handleDelete}>
-          <img src={MinusButton} alt="Minus" />
+        <button onClick={() => handleDelete(task ? task.id : '')}>
+          <img src={MinusButton} className="w-6 m-1 h-6 cursor-pointer" />
         </button>
-      </div>) :
-      (<div style={{width:"20%"}}>
-        <button className="button-container" style={{width:"65%",display:"inline-block", margin:"20%"}} onClick={addTask}>
-          <img src={AddButton} alt="Add" id={task.id} />
-        </button>
-        <button style={{width:"65%",display:"inline-block", margin:"20%"}} onClick={handleDelete}>
-          <img src={MinusButton} alt="Minus" />
-        </button>
-      </div>)}
+      </div>
     </div>
   );
 }
