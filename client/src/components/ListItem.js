@@ -35,7 +35,7 @@ export default function ListItem({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === 'return') {
       e.preventDefault();
       if(isEditing) {
         if (task.is_new) {
