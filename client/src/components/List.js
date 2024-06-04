@@ -27,7 +27,7 @@ export default function List() {
   // Function to add a new task to tasks state
   const saveTask = async () => {
     try {
-      const currentDate = new Date().toISOString();
+      const currentDate = new Date().toDateString();
       const response = await axios.post('http://localhost:5000/tasks', {
         id: uuidv4(),
         text: 'New Task',
@@ -207,7 +207,7 @@ export default function List() {
   };
 
   return (
-    <div className="w-1/2 mx-auto">
+    <div className=" xs:w-1/2 sm:mx-4 sm:mx-auto sm:w-1/2 md:w-1/2 lg:w-1/4  lg:mx-auto">
       <div className="flex justify-center mb-[-3.5rem] mt-[3.5rem]">
         <img src={PlantIcon} alt="plant1" className="mr-80 w-16" />
       </div>

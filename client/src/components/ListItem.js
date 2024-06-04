@@ -76,7 +76,8 @@ export default function ListItem({
 
   return (
     <div
-      className={`m-4 w-auto p-4 max-w-sm mx-auto bg-white rounded-xl shadow-lg flex items-center space-x-4 ${isDraggedOver ? 'style.dragged-over' : ''}`}
+      // className={`overflow-y-auto w-full sm:w-auto md:w-96 lg:w-2/4 xl:w-3/4 m-4 p-4 mx-auto bg-white rounded-xl shadow-lg flex items-center space-x-4 ${isDraggedOver ? 'style.dragged-over' : ''}`}
+      className={`overflow-y-auto m-4 p-4 mx-auto w-full flex space-x-4 items-center shadow-lg rounded-xl ${isDraggedOver ? 'style.dragged-over' : ''}`}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnter={onDragEnter}
